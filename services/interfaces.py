@@ -4,14 +4,14 @@ Defines the contracts that service implementations must follow.
 """
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List
+from typing import Any
 
 
 class MessageServiceInterface(ABC):
     """Interface for message storage and retrieval."""
 
     @abstractmethod
-    async def insert_message(self, message: Dict[str, Any]) -> str:
+    async def insert_message(self, message: dict[str, Any]) -> str:
         """
         Insert a message and return its ID.
 
@@ -56,7 +56,7 @@ class WhatsAppServiceInterface(ABC):
         pass
 
     @abstractmethod
-    async def list_clients(self) -> List[str]:
+    async def list_clients(self) -> list[str]:
         """
         List all registered client IDs.
 
@@ -142,7 +142,7 @@ class WhatsAppServiceInterface(ABC):
 
     @abstractmethod
     async def send_buttons(
-        self, client_id: str, to: str, text: str, buttons: List[Dict[str, str]]
+        self, client_id: str, to: str, text: str, buttons: list[dict[str, str]]
     ) -> str:
         """
         Send a message with buttons.

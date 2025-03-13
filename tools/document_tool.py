@@ -20,6 +20,18 @@ class DocumentTool(MessageTool):
         """
         self.files = files
 
+    def _is_valid_file(self, file: dict[str, str]) -> bool:
+        """
+        Check if file object is valid for document sending.
+        
+        Args:
+            file: The file object to validate
+            
+        Returns:
+            True if the file has required keys, False otherwise
+        """
+        return "url" in file and "filename" in file
+        
     async def execute(self, context: dict[str, Any]) -> list[str]:
         """
         Send documents.
@@ -32,13 +44,11 @@ class DocumentTool(MessageTool):
         """
         message_service = context["lifespan_context"]["message_service"]
 
-        sent_ids = []
+        # Define explicit type for the sent_ids list
+        sent_ids: list[str] = []
         for file in self.files:
-            if (
-                not isinstance(file, dict)
-                or "url" not in file
-                or "filename" not in file
-            ):
+            # Type guard to ensure file is a dict and has required keys
+            if not self._is_valid_file(file):
                 continue
 
             url = file["url"]
@@ -64,8 +74,10 @@ class DocumentTool(MessageTool):
             # Store the message
             await message_service.insert_message(outbound_message)
 
+            # Now append to the explicitly typed list
             sent_ids.append(external_id)
 
+        # Return with explicit type
         return sent_ids
 
     async def _send_document(
@@ -83,6 +95,8 @@ class DocumentTool(MessageTool):
         Returns:
             External message ID
         """
+        # Parameters intentionally unused in this mock implementation
+        _ = phone_number, url, filename, company_id
         # Implement actual document sending here
         # This would typically call a WhatsApp API provider
         return str(uuid.uuid4())

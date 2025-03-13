@@ -3,7 +3,7 @@ Button tool for sending interactive buttons
 """
 
 import uuid
-from typing import Any, Dict, List
+from typing import Any
 
 from tools.base_tool import MessageTool
 
@@ -14,11 +14,11 @@ class ButtonTool(MessageTool):
     def __init__(
         self,
         body_text: str,
-        buttons: List[Dict[str, Any]],
+        buttons: list[dict[str, Any]],
         button_type: str = "reply",
-        header: Dict[str, Any] | None = None,
+        header: dict[str, Any] | None = None,
         footer_text: str | None = None,
-        payment_data: Dict[str, Any] | None = None,
+        payment_data: dict[str, Any] | None = None,
     ):
         """
         Initialize button tool with parameters.
@@ -40,7 +40,7 @@ class ButtonTool(MessageTool):
         self.footer_text = footer_text
         self.payment_data = payment_data
 
-    async def execute(self, context: Dict[str, Any]) -> str:
+    async def execute(self, context: dict[str, Any]) -> str:
         """
         Send button message.
 
@@ -76,7 +76,7 @@ class ButtonTool(MessageTool):
             message_text = f"{body_text}\n{footer_text}\nOptions: {button_text}"
 
         # Create outbound message with interactive data
-        button_data: Dict[str, Any] = {
+        button_data: dict[str, Any] = {
             "text": message_text,
             "button_type": self.button_type,
             "buttons": self.buttons,
@@ -131,6 +131,8 @@ class ButtonTool(MessageTool):
         Returns:
             External message ID
         """
+        # Parameters intentionally unused in this mock implementation
+        _ = phone_number, company_id
         # Actual payment link sending would go here
         return str(uuid.uuid4())
 
@@ -161,14 +163,33 @@ class ButtonTool(MessageTool):
         """
         try:
             if self.button_type == "reply":
-                return ", ".join(
-                    [
-                        button.get("title", "")
-                        if isinstance(button, dict)
-                        else button.get("reply", {}).get("title", "")
-                        for button in self.buttons
-                    ]
-                )
+                # Extract titles as strings with proper type handling
+                button_titles: list[str] = []
+                for button in self.buttons:
+                    # Use type narrowing instead of isinstance
+                    # First case: direct title in dict
+                    if hasattr(button, "get"):
+                        # Safely handle the title retrieval
+                        title = button.get("title", None)
+                        if isinstance(title, str):
+                            button_titles.append(title)
+                        # Handle reply button case - get returns Any, so we need to check the type
+                        reply_value = button.get("reply", None)  # This could be any type
+                        
+                        # Type guard to ensure it's a dictionary before proceeding
+                        if isinstance(reply_value, dict):
+                            # Now that we know it's a dict, create a typed dictionary
+                            # Use a type guard pattern with assignment
+                            typed_reply_dict: dict[str, Any] = reply_value
+                            
+                            # Get title with explicit None default to avoid Any type
+                            title_value: Any = typed_reply_dict.get("title")
+                            
+                            # Only add to the list if the title is a string
+                            if isinstance(title_value, str):
+                                button_titles.append(title_value)
+                
+                return ", ".join(button_titles)
             return ""
         except Exception:
             return ""

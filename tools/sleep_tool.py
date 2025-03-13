@@ -26,8 +26,10 @@ class SleepTool(Tool):
         Sleep for specified duration.
 
         Args:
-            context: Execution context
+            context: Execution context (required by interface but unused in this implementation)
         """
+        # Parameter intentionally unused
+        _ = context
         # Only sleep if the original value was non-negative
         if self.original_seconds >= 0:
             await asyncio.sleep(self.seconds)

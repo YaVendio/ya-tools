@@ -1,4 +1,4 @@
-.PHONY: help install dev-install sync test lint format clean
+.PHONY: help install dev-install sync test lint lint-fix format clean typecheck
 
 # Help command
 help:
@@ -10,7 +10,9 @@ help:
 	@echo "test          - Run tests"
 	@echo "coverage      - Run tests with coverage report"
 	@echo "lint          - Run linter"
+	@echo "lint-fix      - Run linter and automatically fix issues"
 	@echo "format        - Format code"
+	@echo "typecheck     - Run type checker"
 	@echo "clean         - Clean cache files and directories"
 	@echo "run           - Run the application with MCP Inspector (dev mode)"
 	@echo "run-prod      - Run the application with MCP (production mode)"
@@ -32,9 +34,13 @@ sync: install dev-install
 	@echo "All dependencies synced"
 
 # Run tests
+# Usage: make test [TEST_PATH=path/to/test] [TEST_ARGS="-v -m 'not slow'"]
+TEST_PATH ?= 
+TEST_ARGS ?= 
+
 test:
 	@echo "Running tests..."
-	python -m pytest
+	python -m pytest $(TEST_PATH) $(TEST_ARGS)
 
 # Run tests with coverage
 coverage:
@@ -45,6 +51,16 @@ coverage:
 lint:
 	@echo "Running linter..."
 	ruff check app services tools scripts tests
+
+# Run linter and fix issues
+lint-fix:
+	@echo "Running linter and fixing issues..."
+	ruff check --fix app services tools scripts tests
+
+# Run type checker
+typecheck:
+	@echo "Running type checker..."
+	uv run pyright app services tools scripts tests
 
 # Format code
 format:
@@ -72,6 +88,16 @@ run-prod:
 	ENVIRONMENT=production mcp run app/server.py
 
 # Install in Claude Desktop
-install-mcp:
+mcp-install:
 	@echo "Installing in Claude Desktop..."
-	mcp install app/server.py 
+	mcp install app/server.py
+
+# Run with MCP in development mode
+mcp-dev:
+	@echo "Running in MCP development mode..."
+	mcp dev app/server.py
+
+# Install from PyPI package
+mcp-install-pkg:
+	@echo "Installing MCP package from PyPI..."
+	mcp install ya-tools

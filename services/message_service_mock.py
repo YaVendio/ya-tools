@@ -3,7 +3,7 @@ Mock implementation of message service for testing and development.
 """
 
 import uuid
-from typing import Any, Dict
+from typing import Any
 
 from services.interfaces import MessageServiceInterface
 
@@ -12,9 +12,9 @@ class MockMessageService(MessageServiceInterface):
     """In-memory mock implementation of message service."""
 
     def __init__(self):
-        self.messages = {}  # message_id -> message
+        self.messages: dict[str, dict[str, Any]] = {}  # message_id -> message
 
-    async def insert_message(self, message: Dict[str, Any]) -> str:
+    async def insert_message(self, message: dict[str, Any]) -> str:
         """
         Insert a message and return its ID.
 

@@ -4,9 +4,13 @@ Application lifecycle management.
 
 from contextlib import asynccontextmanager
 
+import structlog
 from fastapi import FastAPI
 
 from services.message_service_mock import MockMessageService
+
+# Set up structured logging
+logger = structlog.get_logger(__name__)
 
 
 @asynccontextmanager
@@ -21,8 +25,8 @@ async def lifespan(app: FastAPI):
         "message_service": message_service,
     }
 
-    print("[STARTUP] Mock services initialized")
+    logger.info("Mock services initialized", event="startup")
 
     yield
 
-    print("[SHUTDOWN] Application shutting down")
+    logger.info("Application shutting down", event="shutdown")

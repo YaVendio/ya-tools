@@ -3,7 +3,7 @@ Video tool for sending videos
 """
 
 import uuid
-from typing import Any, Dict, List
+from typing import Any
 
 from tools.base_tool import MessageTool
 
@@ -11,7 +11,7 @@ from tools.base_tool import MessageTool
 class VideoTool(MessageTool):
     """Tool for sending video messages."""
 
-    def __init__(self, urls: List[str] | str):
+    def __init__(self, urls: list[str] | str):
         """
         Initialize with video URLs.
 
@@ -20,7 +20,7 @@ class VideoTool(MessageTool):
         """
         self.urls = urls if isinstance(urls, list) else [urls]
 
-    async def execute(self, context: Dict[str, Any]) -> List[str]:
+    async def execute(self, context: dict[str, Any]) -> list[str]:
         """
         Send videos.
 
@@ -32,7 +32,8 @@ class VideoTool(MessageTool):
         """
         message_service = context["lifespan_context"]["message_service"]
 
-        sent_ids = []
+        # Define explicit type for the sent_ids list
+        sent_ids: list[str] = []
         for url in self.urls:
             external_id = await self._send_video(
                 context["phone_number"], url, context["company_id"]
@@ -46,8 +47,10 @@ class VideoTool(MessageTool):
             # Store the message
             await message_service.insert_message(outbound_message)
 
+            # Now append to the explicitly typed list
             sent_ids.append(external_id)
 
+        # Return with explicit type
         return sent_ids
 
     async def _send_video(self, phone_number: str, url: str, company_id: str) -> str:
@@ -62,6 +65,8 @@ class VideoTool(MessageTool):
         Returns:
             External message ID
         """
+        # Parameters intentionally unused in this mock implementation
+        _ = phone_number, url, company_id
         # Implement actual video sending here
         # This would typically call a WhatsApp API provider
         return str(uuid.uuid4())

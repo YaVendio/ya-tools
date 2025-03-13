@@ -76,16 +76,16 @@ class MessageTool(Tool):
 
         Args:
             content: Raw message content
-            message_type: Type of message
+            message_type: Type of message (text, image, video, document, or other)
 
         Returns:
-            Formatted message data
+            Formatted message data with proper structure based on message type
         """
         if message_type == "text":
             return {"text": content}
         elif message_type in ["image", "video", "document"]:
             if isinstance(content, dict) and "url" in content:
-                return content
+                return content  # type: dict[str, Any]
             return {"url": content, "mime_type": self._get_mime_type(message_type)}
         return {"content": content}
 

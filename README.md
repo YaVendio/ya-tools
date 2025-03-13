@@ -1,6 +1,32 @@
-# YaVendió Tools
+# YaVendió Tools 🧰
 
 An MCP-based messaging and notifications system that allows AI systems to interact with various messaging platforms through the Model Context Protocol (MCP). This project implements an MCP server that exposes messaging tools for sending text, images, documents, buttons, and alerts.
+
+## Table of Contents
+
+- [Features](#features)
+- [What is MCP?](#what-is-mcp)
+- [Installation](#installation)
+  - [Requirements](#requirements)
+- [Configuration](#configuration)
+- [Running with Docker](#running-with-docker)
+- [Running Locally](#running-locally)
+- [Development](#development)
+- [Project Structure](#project-structure)
+- [MCP Integration](#mcp-integration)
+  - [Available MCP Tools](#available-mcp-tools)
+    - [send_text](#send_text)
+    - [send_image](#send_image)
+    - [send_video](#send_video)
+    - [send_document](#send_document)
+    - [send_alert](#send_alert)
+    - [sleep](#sleep)
+    - [send_button](#send_button)
+    - [get_config](#get_config)
+    - [update_config](#update_config)
+- [Testing](#testing)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## Features
 
@@ -13,7 +39,7 @@ An MCP-based messaging and notifications system that allows AI systems to intera
   
 - **WhatsApp Client Management**:
   - Register and manage multiple WhatsApp clients with different credentials
-  - Store tokens securely using Redis
+  - Store tokens securely using Infisical
   - Stateless architecture for client management
   - Dedicated tools for each WhatsApp operation
   
@@ -167,13 +193,13 @@ This service can be integrated with LLM applications through the Model Context P
 
 ```bash
 # Install the server in Claude Desktop
-mcp install app/server.py
+make mcp-install
 
 # Run in development mode with auto-reload
-mcp dev app/server.py
+make mcp-dev
 
 # Install from PyPI (if published)
-mcp install ya-tools
+make mcp-install-pkg
 ```
 
 ### Available MCP Tools
@@ -417,163 +443,13 @@ result = await update_config(
 print(f"Update Result: {result['message']}")
 ```
 
-### WhatsApp Client Management Tools
 
-These tools allow you to manage multiple WhatsApp clients with different credentials.
-
-#### `register_whatsapp_client`
-
-Registers a new WhatsApp client with the specified credentials.
-
-**Parameters:**
-
-- `client_id`: Unique identifier for the client
-- `phone_id`: WhatsApp phone ID
-- `token`: WhatsApp API token
-
-**Example:**
-
-```python
-result = await register_whatsapp_client(
-    client_id="client123",
-    phone_id="1234567890",
-    token="your_whatsapp_token"
-)
-print(f"Client registered: {result['client_id']}")
-```
-
-#### `list_whatsapp_clients`
-
-Lists all registered WhatsApp clients.
-
-**Example:**
-
-```python
-result = await list_whatsapp_clients()
-print(f"Registered clients: {result['clients']}")
-```
-
-#### `send_whatsapp_text`
-
-Sends a text message through a specific WhatsApp client.
-
-**Parameters:**
-
-- `client_id`: Client to use for sending
-- `phone_number`: Recipient's phone number
-- `message`: Text message to send
-
-**Example:**
-
-```python
-result = await send_whatsapp_text(
-    client_id="client123",
-    phone_number="5551234567",
-    message="Hello from WhatsApp!"
-)
-print(f"Message ID: {result['message_id']}")
-```
-
-#### `send_whatsapp_image`
-
-Sends an image through a specific WhatsApp client.
-
-**Parameters:**
-
-- `client_id`: Client to use for sending
-- `phone_number`: Recipient's phone number
-- `image_url`: URL of the image to send
-- `caption`: Optional caption for the image
-
-**Example:**
-
-```python
-result = await send_whatsapp_image(
-    client_id="client123",
-    phone_number="5551234567",
-    image_url="https://example.com/image.jpg",
-    caption="Check out this image!"
-)
-print(f"Message ID: {result['message_id']}")
-```
-
-#### `send_whatsapp_video`
-
-Sends a video through a specific WhatsApp client.
-
-**Parameters:**
-
-- `client_id`: Client to use for sending
-- `phone_number`: Recipient's phone number
-- `video_url`: URL of the video to send
-- `caption`: Optional caption for the video
-
-**Example:**
-
-```python
-result = await send_whatsapp_video(
-    client_id="client123",
-    phone_number="5551234567",
-    video_url="https://example.com/video.mp4",
-    caption="Check out this video!"
-)
-print(f"Message ID: {result['message_id']}")
-```
-
-#### `send_whatsapp_document`
-
-Sends a document through a specific WhatsApp client.
-
-**Parameters:**
-
-- `client_id`: Client to use for sending
-- `phone_number`: Recipient's phone number
-- `document_url`: URL of the document to send
-- `caption`: Optional caption for the document
-- `filename`: Optional filename for the document
-
-**Example:**
-
-```python
-result = await send_whatsapp_document(
-    client_id="client123",
-    phone_number="5551234567",
-    document_url="https://example.com/document.pdf",
-    caption="Important document",
-    filename="report.pdf"
-)
-print(f"Message ID: {result['message_id']}")
-```
-
-#### `send_whatsapp_buttons`
-
-Sends interactive buttons through a specific WhatsApp client.
-
-**Parameters:**
-
-- `client_id`: Client to use for sending
-- `phone_number`: Recipient's phone number
-- `text`: Message text to display
-- `buttons`: List of button configs `[{"title": "...", "callback_data": "..."}]`
-
-**Example:**
-
-```python
-result = await send_whatsapp_buttons(
-    client_id="client123",
-    phone_number="5551234567",
-    text="Please select an option:",
-    buttons=[
-        {"title": "Option 1", "callback_data": "opt1"},
-        {"title": "Option 2", "callback_data": "opt2"}
-    ]
-)
-print(f"Message ID: {result['message_id']}")
-```
 
 ## Testing
 
-Tests are organized by module and use pytest with pytest-asyncio for async test support:
+For detailed information on running and writing tests, see [TEST.md](./TEST.md).
+
+Basic test commands:
 
 ```bash
 # Run all tests
@@ -581,41 +457,6 @@ make test
 
 # Run tests with coverage
 make coverage
-
-# Run specific test file
-python -m pytest tests/tools/test_text_tool.py
-
-# Run tests with specific marker
-python -m pytest -m "not slow"
-
-# Run only app and tools tests (excluding server tests)
-python -m pytest tests/app tests/tools
-
-# Run with verbose output
-python -m pytest -v
-```
-
-### Writing Tests
-
-Here's an example of how to write a test for a tool:
-
-```python
-import pytest
-from tools.text_tool import TextTool
-
-@pytest.mark.asyncio
-async def test_text_tool_execution(test_context):
-    """Test the TextTool with mock services."""
-    # Create and execute text tool
-    text_tool = TextTool("Hello, this is a test message!")
-    message_id = await text_tool.execute(test_context)
-
-    # Get services from context
-    message_service = test_context["lifespan_context"]["message_service"]
-
-    # Assertions
-    assert message_id is not None, "Message ID should be returned"
-    assert len(message_service.messages) > 0, "Message should be stored"
 ```
 
 ## Contributing

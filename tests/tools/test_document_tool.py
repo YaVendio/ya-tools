@@ -80,11 +80,16 @@ async def test_document_tool_empty_list(test_context: dict[str, Any]) -> None:
 async def test_document_tool_invalid_file(test_context: dict[str, Any]) -> None:
     """Test the DocumentTool with invalid file data."""
     # Arrange - Missing filename
-    files = [
+    # Using cast to satisfy type checking while testing invalid inputs
+    from typing import cast
+    
+    invalid_files_mixed_types = [
         {"url": "https://example.com/doc1.pdf"},  # Missing filename
         {"filename": "document2.pdf"},  # Missing URL
         "not_a_dict",  # Not a dict
     ]
+    # Cast to the expected type for testing - we want to test how DocumentTool handles invalid input
+    files = cast(list[dict[str, str]], invalid_files_mixed_types)
     document_tool = DocumentTool(files)
 
     # Act

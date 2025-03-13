@@ -2,7 +2,7 @@
 Message service for handling message storage and retrieval
 """
 
-from typing import Any, Dict
+from typing import Any
 
 from services.interfaces import MessageServiceInterface
 
@@ -17,7 +17,7 @@ class MessageService(MessageServiceInterface):
         # We're no longer using a database here
         pass
 
-    async def insert_message(self, message: Dict[str, Any]) -> str:
+    async def insert_message(self, message: dict[str, Any]) -> str:
         """
         Insert a message and return its ID.
 

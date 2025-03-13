@@ -2,10 +2,22 @@
 Mock implementation of WhatsApp service for testing and development.
 """
 
+import logging
 import uuid
-from typing import Dict, List
 
 from services.interfaces import WhatsAppServiceInterface
+
+# Set up logging
+logger = logging.getLogger(__name__)
+
+
+class MockButton:
+    """Mock implementation of a WhatsApp button."""
+    
+    def __init__(self, title: str, callback_data: str) -> None:
+        """Initialize button with title and callback data."""
+        self.title = title
+        self.callback_data = callback_data
 
 
 class MockWhatsAppClient:
@@ -16,39 +28,45 @@ class MockWhatsAppClient:
         self.phone_id = phone_id
         self.token = token
 
-    def send_message(self, to: str, text: str, buttons=None):
+    def send_message(self, to: str, text: str, buttons: list["MockButton"] | None = None) -> "MockMessageResponse":
         """Send a text message or message with buttons."""
         message_id = str(uuid.uuid4())
-        print(f"[MOCK] Sending message to {to}: {text}")
+        logger.info(f"[MOCK] Sending message to {to}: {text}")
         if buttons:
             button_texts = [b.title for b in buttons]
-            print(f"[MOCK] With buttons: {button_texts}")
+            logger.info(f"[MOCK] With buttons: {button_texts}")
         return MockMessageResponse(message_id)
 
-    def send_image(self, to: str, image: str, caption=None):
+    def send_image(self, to: str, image: str, caption: str | None = None):
         """Send an image message."""
         message_id = str(uuid.uuid4())
-        print(f"[MOCK] Sending image to {to}: {image}")
+        logger.info(f"[MOCK] Sending image to {to}: {image}")
         if caption:
-            print(f"[MOCK] With caption: {caption}")
+            logger.info(f"[MOCK] With caption: {caption}")
         return MockMessageResponse(message_id)
 
-    def send_video(self, to: str, video: str, caption=None):
+    def send_video(self, to: str, video: str, caption: str | None = None):
         """Send a video message."""
         message_id = str(uuid.uuid4())
-        print(f"[MOCK] Sending video to {to}: {video}")
+        logger.info(f"[MOCK] Sending video to {to}: {video}")
         if caption:
-            print(f"[MOCK] With caption: {caption}")
+            logger.info(f"[MOCK] With caption: {caption}")
         return MockMessageResponse(message_id)
 
-    def send_document(self, to: str, document: str, caption=None, filename=None):
+    def send_document(
+        self,
+        to: str,
+        document: str,
+        caption: str | None = None,
+        filename: str | None = None,
+    ):
         """Send a document message."""
         message_id = str(uuid.uuid4())
-        print(f"[MOCK] Sending document to {to}: {document}")
+        logger.info(f"[MOCK] Sending document to {to}: {document}")
         if caption:
-            print(f"[MOCK] With caption: {caption}")
+            logger.info(f"[MOCK] With caption: {caption}")
         if filename:
-            print(f"[MOCK] With filename: {filename}")
+            logger.info(f"[MOCK] With filename: {filename}")
         return MockMessageResponse(message_id)
 
 
@@ -64,10 +82,10 @@ class MockWhatsAppService(WhatsAppServiceInterface):
     """In-memory mock implementation of WhatsApp service."""
 
     def __init__(self):
-        """Initialize mock service."""
-        self.clients = {}  # client_id -> MockWhatsAppClient
-        self.tokens = {}  # client_id -> token
-        self.phone_ids = {}  # client_id -> phone_id
+        """Initialize mock service with typed collections."""
+        self.clients: dict[str, MockWhatsAppClient] = {}  # client_id -> MockWhatsAppClient
+        self.tokens: dict[str, str] = {}  # client_id -> token
+        self.phone_ids: dict[str, str] = {}  # client_id -> phone_id
 
     async def get_client(self, client_id: str) -> MockWhatsAppClient:
         """
@@ -112,10 +130,10 @@ class MockWhatsAppService(WhatsAppServiceInterface):
         client = MockWhatsAppClient(phone_id=phone_id, token=token)
         self.clients[client_id] = client
 
-        print(f"[MOCK] Registered client {client_id} with phone_id {phone_id}")
+        logger.info(f"[MOCK] Registered client {client_id} with phone_id {phone_id}")
         return client
 
-    async def list_clients(self) -> List[str]:
+    async def list_clients(self) -> list[str]:
         """
         List all registered client IDs.
 
@@ -206,7 +224,7 @@ class MockWhatsAppService(WhatsAppServiceInterface):
         return result.id
 
     async def send_buttons(
-        self, client_id: str, to: str, text: str, buttons: List[Dict[str, str]]
+        self, client_id: str, to: str, text: str, buttons: list[dict[str, str]]
     ) -> str:
         """
         Send a message with buttons.
@@ -222,11 +240,6 @@ class MockWhatsAppService(WhatsAppServiceInterface):
         """
 
         # Convert dict buttons to mock Button objects
-        class MockButton:
-            def __init__(self, title, callback_data):
-                self.title = title
-                self.callback_data = callback_data
-
         button_objects = [
             MockButton(title=btn["title"], callback_data=btn.get("callback_data", ""))
             for btn in buttons

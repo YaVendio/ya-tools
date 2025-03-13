@@ -1,0 +1,25 @@
+1. Always use `uv` package manager, never use `pip` directly
+2. Dependencies should be managed through pyproject.toml
+3. Run `make sync` to update all dependencies
+4. Code must pass Pyright type checking in strict mode
+5. All function parameters and return values must have explicit type annotations
+6. No implicit Any types allowed
+7. TypedDict access must use string literals for keys, not variables
+8. Always check for None when handling Optional types
+9. Exception handlers must always capture the exception variable (e.g., `except Exception as e:`)
+10. Use specific exception types when possible
+11. Handle exceptions at the appropriate level
+12. Follow ruff linting rules as configured in pyproject.toml
+13. Run `make lint` before committing code
+14. Run `make format` to automatically format code
+15. Write tests for all new functionality
+16. Use pytest for testing
+17. Mock external dependencies in tests
+18. Infisical SDK is used for secret management (not Redis)
+19. WhatsApp client uses Infisical to store and retrieve credentials
+20. No direct use of Redis in new code
+21. Use pywa for WhatsApp client implementation
+22. Use pydantic for data validation
+23. Use structlog for logging
+24. Use rich for console output
+25. Use MCP for communication between services

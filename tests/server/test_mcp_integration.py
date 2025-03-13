@@ -3,15 +3,20 @@ Tests for MCP server integration.
 """
 
 import asyncio
-from typing import Any, Dict
+from collections.abc import Callable, Generator
+from typing import Any, TypeVar
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+# Define a custom type for our mocked FastMCP
+T = TypeVar("T")
+MockedFastMCP = MagicMock
+
 
 # Since we're testing the MCP integration, we need to mock the MCP server library
 @pytest.fixture
-def mock_mcp_server():
+def mock_mcp_server() -> Generator[MagicMock]:
     """Mock the FastMCP server."""
     with patch("mcp.server.fastmcp.FastMCP") as mock_server:
         # Mock the register_tool method
@@ -27,7 +32,7 @@ def mock_mcp_server():
 
 
 @pytest.mark.asyncio
-async def test_server_registers_tools(mock_mcp_server):
+async def test_server_registers_tools(mock_mcp_server: MagicMock) -> None:
     """Test that the server registers all required tools with MCP."""
     # Import here to avoid circular imports during test discovery
     from app.server import create_server
@@ -51,11 +56,13 @@ async def test_server_registers_tools(mock_mcp_server):
         "update_config",
         "register_whatsapp_client",
         "list_whatsapp_clients",
-        "send_whatsapp_text",
-        "send_whatsapp_image",
-        "send_whatsapp_video",
-        "send_whatsapp_document",
-        "send_whatsapp_buttons",
+        # The following tools have been consolidated into the general tools
+        # with an optional client_id parameter, so they're no longer separate:
+        # "send_whatsapp_text",
+        # "send_whatsapp_image",
+        # "send_whatsapp_video",
+        # "send_whatsapp_document",
+        # "send_whatsapp_buttons",
     ]
 
     # Get all tool names that were registered
@@ -65,14 +72,14 @@ async def test_server_registers_tools(mock_mcp_server):
     for tool in expected_tools:
         assert tool in registered_tools, f"Expected tool '{tool}' not registered"
 
-    # Cleanup
-    await server.stop()
+    # Cleanup - We know this is mocked, so it's safe to call
+    await server.stop()  # type: ignore
 
 
 @pytest.mark.asyncio
 async def test_send_text_tool_integration(
-    mock_mcp_server, test_context: Dict[str, Any]
-):
+    mock_mcp_server: MagicMock, test_context: dict[str, Any]
+) -> None:
     """Test the send_text tool integration."""
     # Import here to avoid circular imports
     from app.server import create_server
@@ -83,14 +90,16 @@ async def test_send_text_tool_integration(
     context.set_state = AsyncMock()
 
     # Set up the mock handler to return a valid response
-    async def mock_handler_impl(ctx, params):
+    async def mock_handler_impl(ctx: Any, _params: dict[str, Any]) -> dict[str, str]:
         await ctx.get_state()
         return {"message_id": "test_message_id"}
 
     mock_handler = AsyncMock(side_effect=mock_handler_impl)
 
     # Configure the mock server to return our mock handler when registering the send_text tool
-    def register_tool_side_effect(name, handler):
+    def register_tool_side_effect(
+        name: str, _handler: Callable[..., Any]
+    ) -> AsyncMock | MagicMock:
         if name == "send_text":
             return mock_handler
         return MagicMock()
@@ -123,11 +132,13 @@ async def test_send_text_tool_integration(
     context.get_state.assert_called_once()
 
     # Cleanup
-    await server.stop()
+    await server.stop()  # type: ignore
 
 
 @pytest.mark.asyncio
-async def test_sleep_tool_integration(mock_mcp_server, test_context: Dict[str, Any]):
+async def test_sleep_tool_integration(
+    mock_mcp_server: MagicMock, test_context: dict[str, Any]
+) -> None:
     """Test the sleep tool integration."""
     # Import here to avoid circular imports
     from app.server import create_server
@@ -139,7 +150,7 @@ async def test_sleep_tool_integration(mock_mcp_server, test_context: Dict[str, A
     # Patch asyncio.sleep to avoid actual sleeping
     with patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
         # Set up the mock handler to call asyncio.sleep
-        async def mock_handler_impl(ctx, params):
+        async def mock_handler_impl(ctx: Any, params: dict[str, Any]) -> dict[str, str]:
             await ctx.get_state()
             await asyncio.sleep(params["seconds"])
             return {"status": "success"}
@@ -147,7 +158,9 @@ async def test_sleep_tool_integration(mock_mcp_server, test_context: Dict[str, A
         mock_handler = AsyncMock(side_effect=mock_handler_impl)
 
         # Configure the mock server to return our mock handler when registering the sleep tool
-        def register_tool_side_effect(name, handler):
+        def register_tool_side_effect(
+            name: str, _handler: Callable[..., Any]
+        ) -> AsyncMock | MagicMock:
             if name == "sleep":
                 return mock_handler
             return MagicMock()
@@ -178,24 +191,25 @@ async def test_sleep_tool_integration(mock_mcp_server, test_context: Dict[str, A
         mock_sleep.assert_called_once_with(5)
 
         # Cleanup
-        await server.stop()
+        await server.stop()  # type: ignore
 
 
 @pytest.mark.asyncio
-async def test_server_lifespan_management(mock_mcp_server):
+async def test_server_lifespan_management(mock_mcp_server: MagicMock) -> None:
     """Test the server's lifespan management."""
     # Import here to avoid circular imports
     from app.server import create_server
 
     # Act - Create and then start the server
     server = await create_server(mock_mcp_server.return_value)
-    await server.start()
+    # The server is a mock, so we can call .start() even though it's not in the real FastMCP
+    await server.start()  # type: ignore
 
     # Assert - Server was started
     mock_mcp_server.return_value.start.assert_called_once()
 
     # Now stop the server
-    await server.stop()
+    await server.stop()  # type: ignore
 
     # Assert - Server was stopped
     mock_mcp_server.return_value.stop.assert_called_once()

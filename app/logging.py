@@ -7,8 +7,7 @@ This module provides a structured logging setup using structlog:
 """
 
 import os
-import sys
-from typing import Any, List
+from typing import Any
 
 import structlog
 from rich.console import Console
@@ -30,7 +29,7 @@ def configure_logging(env: str | None = None) -> None:
         env = os.environ.get("ENVIRONMENT", "development")
 
     # Common processors for all environments
-    shared_processors: List[Any] = [
+    shared_processors: list[Any] = [
         structlog.contextvars.merge_contextvars,
         structlog.stdlib.add_log_level,
         structlog.stdlib.add_logger_name,
@@ -41,7 +40,8 @@ def configure_logging(env: str | None = None) -> None:
     # Configure based on environment
     if env.lower() == "development":
         # Development: Rich console output
-        processors = shared_processors + [
+        processors = [
+            *shared_processors,
             # Add color and proper formatting
             structlog.dev.ConsoleRenderer(
                 colors=True, exception_formatter=structlog.dev.rich_traceback
@@ -49,7 +49,8 @@ def configure_logging(env: str | None = None) -> None:
         ]
     else:
         # Production: JSON format
-        processors = shared_processors + [
+        processors = [
+            *shared_processors,
             # Convert exceptions to dict before JSON serializing
             structlog.processors.format_exc_info,
             structlog.processors.dict_tracebacks,
@@ -78,8 +79,13 @@ def get_logger(name: str | None = None) -> structlog.stdlib.BoundLogger:
     """
     if name is None:
         # Use the calling module name if no name provided
-        frame = sys._getframe(1)
-        name = frame.f_globals.get("__name__", "unknown")
+        # Using inspect instead of sys._getframe to avoid private method usage
+        import inspect
+        frame = inspect.currentframe()
+        if frame and frame.f_back:
+            name = frame.f_back.f_globals.get("__name__", "unknown")
+        else:
+            name = "unknown"
 
     return structlog.get_logger(name)
 

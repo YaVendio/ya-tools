@@ -39,35 +39,42 @@ class TextTool(MessageTool):
             "message_service"
         ]
 
-        # In a real implementation, this would call an external service
-        external_id = await self._send_message(
-            context["phone_number"], self.message, context["company_id"]
+        # Get recipient information from context
+        phone_number = context["phone_number"]
+        company_id = context["company_id"]
+
+        # Send message and store it
+        external_id = await self._send_message(phone_number, self.message, company_id)
+
+        # Store the message with message service
+        message_id = await message_service.insert_message(
+            {
+                "external_id": external_id,
+                "company_id": company_id,
+                "role": "assistant",
+                "type": "text",
+                "data": {"text": self.message},
+                "timestamp": uuid.uuid4().hex,
+            }
         )
 
-        # Create outbound message
-        outbound_message = self.get_outbound_message(
-            external_id, context, self.message, "text", "assistant"
-        )
-
-        # Store the message using the service
-        await message_service.insert_message(outbound_message)
-
-        return external_id
+        return message_id
 
     async def _send_message(
-        self, phone_number: str, message: str, company_id: str
+        self, _phone_number: str, _message: str, _company_id: str
     ) -> str:
         """
         Placeholder for external API call.
+        In a real implementation, this would call an actual messaging API.
 
         Args:
-            phone_number: Recipient's phone number
-            message: Message content
-            company_id: Company identifier
+            _phone_number: Recipient's phone number
+            _message: Text message to send
+            _company_id: Company identifier
 
         Returns:
             External message ID
         """
-        # Implement actual message sending here
-        # This would typically call a WhatsApp API provider
+        # This is a placeholder that would normally call an actual API
+        # Return a UUID as a mock external ID
         return str(uuid.uuid4())
