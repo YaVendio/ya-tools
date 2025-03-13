@@ -1,0 +1,30 @@
+version: '3'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - LOG_LEVEL=INFO
+      - LOG_FORMAT=json
+      - REDIS_URL=redis://redis:6379
+      - MCP_TRANSPORT=http
+    ports:
+      - "5000:5000"  # Main API port
+      - "4000:3000"  # MCP proxy port
+      - "4173:5173"  # MCP Inspector UI port
+    depends_on:
+      - redis
+    # Use MCP cli command instead of direct python execution
+    command: mcp dev app/server.py
+      
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis-data:/data
+
+volumes:
+  redis-data:
