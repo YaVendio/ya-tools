@@ -1,6 +1,0 @@
-app
-htmlcov
-scripts
-services
-tests
-tools
